@@ -1,18 +1,68 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><meta charset="UTF-8"><title>Ejercicio 03</title></head>
-<body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scanner Seguro</title>
+    <style>
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; font-family: sans-serif; }
+        #camera-view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+        .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .scan-frame { width: 250px; height: 250px; border: 3px solid #00ff00; border-radius: 20px; position: relative; box-shadow: 0 0 0 100vmax rgba(0,0,0,0.5); }
+        .laser { width: 100%; height: 2px; background: #00ff00; position: absolute; top: 0; box-shadow: 0 0 5px #00ff00; animation: scan 2s infinite linear; }
+        @keyframes scan { 0% { top: 0; } 50% { top: 100%; } 100% { top: 0; } }
+        
+        .screen { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white; }
+        #analyzing { background: rgba(0,0,0,0.9); }
+        #danger { background: #b71c1c; }
+        #safe { background: #1b5e20; }
+        .btn { background: white; color: black; border: none; padding: 15px 30px; border-radius: 50px; font-weight: bold; margin-top: 20px; width: 80%; cursor: pointer; }
+    </style>
+</head>
+<body onclick="startScan(event)">
+    <video id="camera-view" autoplay playsinline muted></video>
+    <div class="overlay">
+        <div class="scan-frame"><div class="laser"></div></div>
+        <p style="color:white; margin-top:20px; font-weight:bold; z-index:3;">Toca para escanear</p>
+    </div>
+    
+    <div id="analyzing" class="screen"><h3>Analizando...</h3></div>
+    
+    <div id="danger" class="screen">
+        <h1 style="font-size:60px">⚠️</h1>
+        <h2>PHISHING DETECTADO</h2>
+        <button class="btn" onclick="reset()">VOLVER</button>
+    </div>
+    
+    <div id="safe" class="screen">
+        <h1 style="font-size:60px">✅</h1>
+        <h2>SITIO SEGURO</h2>
+        <button class="btn" onclick="reset()">ABRIR</button>
+    </div>
+
     <script>
-        var num1 = Number(prompt("Introduce número de asteriscos (1-7)"));
-        console.log("Valor: " + num1);
-
-
-        // Pinta asteriscos hasta que el contador llegue a 0.
-        while (num1 > 0) {
-            document.write("*");  // Imprime un asterisco.
-            num1--;
+        async function init() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                document.getElementById('camera-view').srcObject = stream;
+            } catch (e) { console.error(e); }
         }
+        
+        function startScan(e) {
+            if(e.target.tagName === 'BUTTON') return;
+            document.getElementById('analyzing').style.display = 'flex';
+            setTimeout(() => {
+                document.getElementById('analyzing').style.display = 'none';
+                if(e.clientX < window.innerWidth / 2) document.getElementById('safe').style.display = 'flex';
+                else document.getElementById('danger').style.display = 'flex';
+            }, 1500);
+        }
+
+        function reset() {
+            document.getElementById('safe').style.display = 'none';
+            document.getElementById('danger').style.display = 'none';
+        }
+        window.onload = init;
     </script>
 </body>
-
 </html>
